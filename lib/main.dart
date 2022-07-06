@@ -1,3 +1,6 @@
+import 'package:book_keeping_app/db/hi_cache.dart';
+import 'package:book_keeping_app/router/my_router_delegate.dart';
+import 'package:book_keeping_app/util/color.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -30,15 +33,38 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final MyRouterDelegate _routerDelegate = MyRouterDelegate();
+
+  var _futureBuilder;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureBuilder = preInit();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Text('1'),
-      ),
+    return FutureBuilder(
+      future: _futureBuilder,
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        // 定义route
+        var widget = snapshot.connectionState == ConnectionState.done
+            ? Router(routerDelegate: _routerDelegate)
+            : const Scaffold(
+                body: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+        return MaterialApp(
+          home: widget,
+          theme: ThemeData(primarySwatch: white),
+        );
+      },
     );
+  }
+
+  Future preInit() async {
+    return Future.wait([HiCache.preInit()]);
   }
 }
