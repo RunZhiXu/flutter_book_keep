@@ -1,10 +1,13 @@
 import 'package:book_keeping_app/db/provider/icon_category_db_provider.dart';
 import 'package:book_keeping_app/model/icon_category_mo.dart';
+import 'package:book_keeping_app/model/icon_mo.dart';
 import 'package:book_keeping_app/util/color.dart';
 import 'package:book_keeping_app/util/view_util.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../db/provider/icon_db_provider.dart';
+import '../widget/iconfont.dart';
 
 class AddIconPage extends StatefulWidget {
   final String? title;
@@ -17,12 +20,13 @@ class AddIconPage extends StatefulWidget {
 
 class _AddIconPageState extends State<AddIconPage> {
   List<IconCategoryMo> iconCategoryList = [];
+  List<IconMo> iconList = [];
   bool switchBtn = false;
 
   @override
   void initState() {
     super.initState();
-    _getIconList();
+    _getIconCategoryList();
   }
 
   @override
@@ -152,6 +156,7 @@ class _AddIconPageState extends State<AddIconPage> {
             ),
             Expanded(
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
                     width: 78,
@@ -159,7 +164,13 @@ class _AddIconPageState extends State<AddIconPage> {
                     child: ListView(
                       children: _categoryList(),
                     ),
-                  )
+                  ),
+                  Expanded(
+                    child: Container(
+                      color: Colors.white,
+                      child: _iconListWidget(),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -169,7 +180,8 @@ class _AddIconPageState extends State<AddIconPage> {
     );
   }
 
-  void _getIconList() async {
+  // 获取icon 分类列表
+  void _getIconCategoryList() async {
     IconCategoryDbProvider iconCategoryDbProvider = IconCategoryDbProvider();
     await iconCategoryDbProvider.open();
     var list = await iconCategoryDbProvider.getList();
@@ -181,28 +193,53 @@ class _AddIconPageState extends State<AddIconPage> {
       setState(() {
         iconCategoryList = iconCategoryListMo;
       });
+      var categoryId = list[0]['id'] as int;
+      getIconListByCategory(categoryId);
     }
     await iconCategoryDbProvider.close();
 
-    var iconList = [];
-    var time = DateTime.now().microsecondsSinceEpoch;
-    if (list != null) {
-      for (var i = 0; i < list.length; i++) {
-        iconList.add({
-          "icon_category_id": list[i]['id']!,
-          "name": "icon_gift",
-          "create_time": time,
-          'update_time': time,
-        });
-      }
-    }
+    // var iconList = [];
+    // var time = DateTime.now().microsecondsSinceEpoch;
+    // if (list != null) {
+    //   for (var i = 0; i < list.length; i++) {
+    //     iconList.add({
+    //       "icon_category_id": list[i]['id']!,
+    //       "name": "icon_gift",
+    //       "nickname": "测试",
+    //       "create_time": time,
+    //       'update_time': time,
+    //     });
+    //   }
+    // }
+    // IconDbProvider iconDbProvider = IconDbProvider();
+    // await iconDbProvider.open();
+    // for (var i = 0; i < iconList.length; i++) {
+    //   iconDbProvider.insert(iconList[i]);
+    // }
+    // var list3 = await iconDbProvider.getList();
+    // if (kDebugMode) {
+    //   print('list3 length: ${list3!.length}');
+    // }
+    // await iconDbProvider.close();
+  }
+
+  // 获取icon列表
+  void getIconListByCategory(int categoryId) async {
     IconDbProvider iconDbProvider = IconDbProvider();
     await iconDbProvider.open();
-    for (var i = 0; i < iconList.length; i++) {
-      iconDbProvider.insert(iconList[i]);
+    var list = await iconDbProvider.getListByCategoryId(categoryId);
+    if (kDebugMode) {
+      print('icon list = $list');
     }
-    var list3 = await iconDbProvider.getList();
-    print('list3 length: ${list3!.length}');
+    if (list != null) {
+      List<IconMo> iconMoList = [];
+      for (var i = 0; i < list.length; i++) {
+        iconMoList.add(IconMo.fromJson(list[i]));
+      }
+      setState(() {
+        iconList = iconMoList;
+      });
+    }
     await iconDbProvider.close();
   }
 
@@ -233,5 +270,32 @@ class _AddIconPageState extends State<AddIconPage> {
         );
       },
     ).toList();
+  }
+
+  Widget _iconListWidget() {
+    double width = MediaQuery.of(context).size.width;
+    if (iconList.isEmpty) {
+      return const SizedBox();
+    }
+    return GridView(
+      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: (width - 78 - 24) / 4,
+      ),
+      padding: EdgeInsets.zero,
+      children: iconList.map((icon) {
+        return SizedBox(
+          width: (width - 78 - 24) / 4,
+          child: Column(
+            children: [
+              Icon(
+                IconFont.getIcon(name: icon.name!),
+                size: 40,
+              ),
+              Text(icon.nickName!)
+            ],
+          ),
+        );
+      }).toList(),
+    );
   }
 }

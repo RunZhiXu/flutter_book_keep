@@ -1,4 +1,5 @@
 // 基础datebase
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -11,6 +12,9 @@ abstract class BaseDatabase {
 
   Future<Database> open() async {
     var databasesPath = await getDatabasesPath();
+    if (kDebugMode) {
+      print('databasesPath == $databasesPath');
+    }
     String path = join(databasesPath, dbName);
     database = await openDatabase(
       path,
@@ -54,6 +58,10 @@ abstract class BaseDatabase {
   Future<int> delete(int id) async {
     return await database!
         .delete(tableName(), where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> dropTable() async {
+    return await database!.execute('DROP table ${tableName()}');
   }
 
   Future close() async => database!.close();
