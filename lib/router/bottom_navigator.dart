@@ -1,6 +1,7 @@
 import 'package:book_keeping_app/page/asset_page.dart';
 import 'package:book_keeping_app/page/home_page.dart';
 import 'package:book_keeping_app/router/routes.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../util/color.dart';
@@ -16,13 +17,20 @@ class _BottomNavigatorState extends State<BottomNavigator> {
   final _defaultColor = Colors.grey;
   final _activeColor = primary;
   int _currentIndex = 0;
-  final PageController _controller = PageController(initialPage: 0);
+  late PageController _controller;
   late List<Widget> _pages;
   bool _hasBuild = false;
   static int initialPage = 0;
 
   @override
+  void initState() {
+    super.initState();
+    _controller = PageController(initialPage: 0);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    var string = 'add';
     _pages = [
       const HomePage(),
       const AssetPage(),
@@ -42,7 +50,9 @@ class _BottomNavigatorState extends State<BottomNavigator> {
       ),
       bottomNavigationBar: _bottomNavigationBar(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          _clickAdd();
+        },
         child: const Icon(
           Icons.add,
           color: Colors.white,
@@ -59,7 +69,7 @@ class _BottomNavigatorState extends State<BottomNavigator> {
       onTap: (index) => _onJumpTo(index),
       selectedItemColor: _activeColor,
       items: [
-        _bottomItem('null', Icons.home, 0),
+        _bottomItem('首页', Icons.home, 0),
         _bottomItem('资产', Icons.assessment, 1),
       ],
       type: BottomNavigationBarType.fixed,
@@ -69,9 +79,9 @@ class _BottomNavigatorState extends State<BottomNavigator> {
   BottomAppBar _bottomAppBar() {
     return BottomAppBar(
       color: Colors.redAccent,
-      shape: CircularNotchedRectangle(),
+      shape: const CircularNotchedRectangle(),
       child: Padding(
-        padding: EdgeInsets.fromLTRB(0, 6, 0, 6),
+        padding: const EdgeInsets.fromLTRB(0, 6, 0, 6),
         child: Row(
           children: [
             GestureDetector(
@@ -83,10 +93,7 @@ class _BottomNavigatorState extends State<BottomNavigator> {
                 ],
               ),
             ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [Icon(Icons.add)],
-            ),
+            const SizedBox(),
             GestureDetector(
               onTap: () {},
               child: Column(
@@ -126,5 +133,15 @@ class _BottomNavigatorState extends State<BottomNavigator> {
     setState(() {
       _currentIndex = index;
     });
+  }
+
+  void _clickAdd() async {
+    if (kDebugMode) {
+      print('click add');
+    }
+    HiNavigator.getInstance().onJumpTo(
+      RouteStatus.addIcon,
+      args: {"title": "添加一级分类"},
+    );
   }
 }

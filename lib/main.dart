@@ -1,6 +1,7 @@
 import 'package:book_keeping_app/db/hi_cache.dart';
 import 'package:book_keeping_app/router/my_router_delegate.dart';
 import 'package:book_keeping_app/util/color.dart';
+import 'package:book_keeping_app/util/view_util.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -34,13 +35,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final MyRouterDelegate _routerDelegate = MyRouterDelegate();
-
   var _futureBuilder;
 
   @override
   void initState() {
     super.initState();
     _futureBuilder = preInit();
+    changeStatusBar();
   }
 
   @override

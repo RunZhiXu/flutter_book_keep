@@ -1,3 +1,4 @@
+import 'package:book_keeping_app/page/add_icon_page.dart';
 import 'package:book_keeping_app/router/bottom_navigator.dart';
 import 'package:book_keeping_app/router/routes.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,6 +10,8 @@ class MyRouterDelegate extends RouterDelegate<MyRouterPath>
   RouteStatus _routeStatus = RouteStatus.home;
   // 页面集合
   List<MaterialPage> pages = [];
+  // 添加分类页面的标题
+  String? title;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +27,10 @@ class MyRouterDelegate extends RouterDelegate<MyRouterPath>
       pages.clear();
       // 重新创建首页
       page = pageWrap(const BottomNavigator());
+    } else if (routeStatus == RouteStatus.addIcon) {
+      page = pageWrap(AddIconPage(
+        title: title,
+      ));
     }
     // 重新创建数组，否则pages因引用没有改变路由不会生效
     tempPages = [...tempPages, page];
@@ -74,10 +81,9 @@ class MyRouterDelegate extends RouterDelegate<MyRouterPath>
         RouteJumpListener(onJumpTo: (RouteStatus routeStatus, {Map? args}) {
       _routeStatus = routeStatus;
       // 传递参数
-      // if (routeStatus == RouteStatus.article) {
-      //   articleId = args!['id'];
-      //   articleTitle = args['title'];
-      // }
+      if (routeStatus == RouteStatus.addIcon) {
+        title = args!['title'];
+      }
       notifyListeners();
     }));
   }

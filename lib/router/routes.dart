@@ -1,4 +1,5 @@
 import 'package:book_keeping_app/page/add_bill_page.dart';
+import 'package:book_keeping_app/page/add_icon_page.dart';
 import 'package:book_keeping_app/page/asset_page.dart';
 import 'package:book_keeping_app/page/home_page.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ enum RouteStatus {
   home, // 主页
   asset, // 资产页
   addBill, // 添加账单
+  addIcon, // 添加分类
   unknown,
 }
 
@@ -46,6 +48,8 @@ getStatus(MaterialPage page) {
     return RouteStatus.asset;
   } else if (page.child is AddBillPage) {
     return RouteStatus.addBill;
+  } else if (page.child is AddIconPage) {
+    return RouteStatus.addIcon;
   } else {
     return RouteStatus.unknown;
   }
