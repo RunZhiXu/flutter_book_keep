@@ -22,6 +22,8 @@ class _AddIconPageState extends State<AddIconPage> {
   List<IconCategoryMo> iconCategoryList = [];
   List<IconMo> iconList = [];
   bool switchBtn = false;
+  int? selectCategoryId; // 点击的分类id
+  List<int> selectIconId = []; // 选择的icon id
 
   @override
   void initState() {
@@ -61,43 +63,45 @@ class _AddIconPageState extends State<AddIconPage> {
                 color: Colors.white,
                 borderRadius: getConfigBorderRadius(),
               ),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.only(
-                      left: 12,
-                      right: 12,
-                      top: 12,
-                    ),
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      '填写信息',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const Divider(),
-                  Container(
-                    padding: const EdgeInsets.only(
-                        left: 12, right: 12, bottom: 12, top: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: switchBtn
+                  ? const SizedBox()
+                  : Column(
                       children: [
-                        const Text(
-                          '分类名称',
-                          style: TextStyle(fontSize: 16),
+                        Container(
+                          padding: const EdgeInsets.only(
+                            left: 12,
+                            right: 12,
+                            top: 12,
+                          ),
+                          alignment: Alignment.centerLeft,
+                          child: const Text(
+                            '填写信息',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                        Row(
-                          children: [
-                            Container(),
-                          ],
+                        const Divider(),
+                        Container(
+                          padding: const EdgeInsets.only(
+                              left: 12, right: 12, bottom: 12, top: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                '分类名称',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              Row(
+                                children: [
+                                  Container(),
+                                ],
+                              )
+                            ],
+                          ),
                         )
                       ],
                     ),
-                  )
-                ],
-              ),
             ),
             Container(
               decoration: const BoxDecoration(
@@ -143,6 +147,9 @@ class _AddIconPageState extends State<AddIconPage> {
                             value: switchBtn,
                             onChanged: (val) {
                               setState(() {
+                                if (val == false && selectIconId.isNotEmpty) {
+                                  selectIconId = [];
+                                }
                                 switchBtn = val;
                               });
                             },
@@ -192,9 +199,10 @@ class _AddIconPageState extends State<AddIconPage> {
       }
       setState(() {
         iconCategoryList = iconCategoryListMo;
+        selectCategoryId = list[0]['id'] as int;
       });
       var categoryId = list[0]['id'] as int;
-      getIconListByCategory(categoryId);
+      await getIconListByCategory(categoryId);
     }
     await iconCategoryDbProvider.close();
 
@@ -224,7 +232,7 @@ class _AddIconPageState extends State<AddIconPage> {
   }
 
   // 获取icon列表
-  void getIconListByCategory(int categoryId) async {
+  getIconListByCategory(int categoryId) async {
     IconDbProvider iconDbProvider = IconDbProvider();
     await iconDbProvider.open();
     var list = await iconDbProvider.getListByCategoryId(categoryId);
@@ -252,20 +260,23 @@ class _AddIconPageState extends State<AddIconPage> {
       (category) {
         return Column(
           children: [
-            Container(
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(width: 0.5, color: Colors.black12),
-                  right: BorderSide(width: 0.5, color: Colors.black12),
+            GestureDetector(
+              onTap: () {
+                _clickCategory(category.id!);
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  border: const Border(
+                    bottom: BorderSide(width: 0.5, color: Colors.black12),
+                    right: BorderSide(width: 0.5, color: Colors.black12),
+                  ),
+                  color: category.id == selectCategoryId ? Colors.blue : null,
                 ),
+                alignment: Alignment.center,
+                padding: const EdgeInsets.only(top: 12, bottom: 12),
+                child: Text(category.name!),
               ),
-              alignment: Alignment.center,
-              padding: const EdgeInsets.only(top: 12, bottom: 12),
-              child: Text(category.name!),
             ),
-            // const Divider(
-            //   height: 1,
-            // ),
           ],
         );
       },
@@ -280,22 +291,89 @@ class _AddIconPageState extends State<AddIconPage> {
     return GridView(
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: (width - 78 - 24) / 4,
+        mainAxisExtent: (width - 78 - 24) / 4 + 12,
       ),
-      padding: EdgeInsets.zero,
+      padding: const EdgeInsets.only(top: 0, bottom: 12),
       children: iconList.map((icon) {
         return SizedBox(
           width: (width - 78 - 24) / 4,
-          child: Column(
-            children: [
-              Icon(
-                IconFont.getIcon(name: icon.name!),
-                size: 40,
-              ),
-              Text(icon.nickName!)
-            ],
+          child: GestureDetector(
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.only(top: 8, bottom: 8),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: _iconBgColor(icon.id!),
+                      borderRadius: const BorderRadius.all(Radius.circular(20)),
+                    ),
+                    child: Icon(
+                      IconFont.getIcon(name: icon.name!),
+                      color: _iconColor(icon.id!),
+                    ),
+                  ),
+                ),
+                Text(icon.nickName!)
+              ],
+            ),
+            onTap: () {
+              _clickIcon(icon.id!);
+            },
           ),
         );
       }).toList(),
     );
+  }
+
+  // 点击分类
+  _clickCategory(int categoryId) async {
+    await getIconListByCategory(categoryId);
+    setState(() {
+      selectCategoryId = categoryId;
+    });
+  }
+
+  Color _iconColor(int id) {
+    var inList = selectIconId.contains(id);
+    if (inList) {
+      return Colors.white;
+    }
+    return Colors.black45;
+  }
+
+  // 点击icon
+  void _clickIcon(int id) {
+    var check = selectIconId.contains(id);
+    // icon 未点击过
+    if (!check) {
+      var list = selectIconId;
+      if (switchBtn) {
+        list.add(id);
+      } else {
+        list = [id];
+      }
+      setState(() {
+        selectIconId = list;
+      });
+    } else {
+      var index = selectIconId.indexOf(id);
+      var list = selectIconId;
+      if (switchBtn) {
+        list.removeAt(index);
+      } else {
+        list = [];
+      }
+      setState(() {
+        selectIconId = list;
+      });
+    }
+  }
+
+  // icon背景色
+  Color _iconBgColor(int id) {
+    var check = selectIconId.contains(id);
+    return check ? primary : Colors.black12;
   }
 }
