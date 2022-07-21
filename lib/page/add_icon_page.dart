@@ -3,6 +3,7 @@ import 'package:book_keeping_app/model/icon_category_mo.dart';
 import 'package:book_keeping_app/model/icon_mo.dart';
 import 'package:book_keeping_app/util/color.dart';
 import 'package:book_keeping_app/util/view_util.dart';
+import 'package:book_keeping_app/widget/icon_input.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -24,6 +25,8 @@ class _AddIconPageState extends State<AddIconPage> {
   bool switchBtn = false;
   int? selectCategoryId; // 点击的分类id
   List<int> selectIconId = []; // 选择的icon id
+  String? inputText; // 文本
+  String? iconName; // 单选时的icon
 
   @override
   void initState() {
@@ -94,9 +97,45 @@ class _AddIconPageState extends State<AddIconPage> {
                               ),
                               Row(
                                 children: [
-                                  Container(),
+                                  SizedBox(
+                                    width: 150,
+                                    child: IconInput(
+                                      hint: '请输入分类名称',
+                                      lineStretch: false,
+                                      obscureText: false,
+                                      maxLength: 4,
+                                      onChanged: (text) {
+                                        setState(() {
+                                          inputText = text;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: const BoxDecoration(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(20)),
+                                        color: Colors.black12),
+                                    child: iconName == null
+                                        ? const SizedBox()
+                                        : Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: const BoxDecoration(
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(20)),
+                                            ),
+                                            child: Icon(
+                                              IconFont.getIcon(name: iconName!),
+                                              color:
+                                                  _iconColor(selectIconId[0]),
+                                            ),
+                                          ),
+                                  )
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         )
@@ -151,6 +190,7 @@ class _AddIconPageState extends State<AddIconPage> {
                                   selectIconId = [];
                                 }
                                 switchBtn = val;
+                                iconName = null;
                               });
                             },
                           )
@@ -319,7 +359,7 @@ class _AddIconPageState extends State<AddIconPage> {
               ],
             ),
             onTap: () {
-              _clickIcon(icon.id!);
+              _clickIcon(icon);
             },
           ),
         );
@@ -344,21 +384,24 @@ class _AddIconPageState extends State<AddIconPage> {
   }
 
   // 点击icon
-  void _clickIcon(int id) {
-    var check = selectIconId.contains(id);
+  void _clickIcon(IconMo icon) {
+    var check = selectIconId.contains(icon.id!);
     // icon 未点击过
     if (!check) {
       var list = selectIconId;
       if (switchBtn) {
-        list.add(id);
+        list.add(icon.id!);
       } else {
-        list = [id];
+        list = [icon.id!];
+        setState(() {
+          iconName = icon.name!;
+        });
       }
       setState(() {
         selectIconId = list;
       });
     } else {
-      var index = selectIconId.indexOf(id);
+      var index = selectIconId.indexOf(icon.id!);
       var list = selectIconId;
       if (switchBtn) {
         list.removeAt(index);
