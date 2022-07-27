@@ -1,6 +1,8 @@
 import 'package:book_keeping_app/db/provider/icon_category_db_provider.dart';
+import 'package:book_keeping_app/db/provider/order_icon_db_provider.dart';
 import 'package:book_keeping_app/model/icon_category_mo.dart';
 import 'package:book_keeping_app/model/icon_mo.dart';
+import 'package:book_keeping_app/model/order_icon_mo.dart';
 import 'package:book_keeping_app/util/color.dart';
 import 'package:book_keeping_app/util/view_util.dart';
 import 'package:book_keeping_app/widget/icon_input.dart';
@@ -11,9 +13,11 @@ import '../db/provider/icon_db_provider.dart';
 import '../widget/iconfont.dart';
 
 class AddIconPage extends StatefulWidget {
-  final String? title;
+  final IconMo? icon;
+  final int type;
 
-  const AddIconPage({Key? key, this.title}) : super(key: key);
+  const AddIconPage({Key? key, this.icon, required this.type})
+      : super(key: key);
 
   @override
   State<AddIconPage> createState() => _AddIconPageState();
@@ -25,8 +29,9 @@ class _AddIconPageState extends State<AddIconPage> {
   bool switchBtn = false;
   int? selectCategoryId; // 点击的分类id
   List<int> selectIconId = []; // 选择的icon id
-  String? inputText; // 文本
-  String? iconName; // 单选时的icon
+  List<IconMo> selectIconList = []; // 选择的icon
+  String? iconName; // 单选时的icon name
+  String? inputText; // icon的nickname
 
   @override
   void initState() {
@@ -42,7 +47,7 @@ class _AddIconPageState extends State<AddIconPage> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text(
-          widget.title == null ? '添加分类' : widget.title!,
+          widget.icon == null ? '添加分类' : '添加二级分类',
           style: const TextStyle(fontSize: 16),
         ),
         elevation: 0.5,
@@ -52,7 +57,9 @@ class _AddIconPageState extends State<AddIconPage> {
               padding: EdgeInsets.only(right: 12),
               child: Icon(Icons.save_outlined),
             ),
-            onTap: () {},
+            onTap: () {
+              _save();
+            },
           )
         ],
       ),
@@ -85,6 +92,7 @@ class _AddIconPageState extends State<AddIconPage> {
                           ),
                         ),
                         const Divider(),
+                        parentIcon(),
                         Container(
                           padding: const EdgeInsets.only(
                               left: 12, right: 12, bottom: 12, top: 8),
@@ -100,6 +108,7 @@ class _AddIconPageState extends State<AddIconPage> {
                                   SizedBox(
                                     width: 150,
                                     child: IconInput(
+                                      text: inputText,
                                       hint: '请输入分类名称',
                                       lineStretch: false,
                                       obscureText: false,
@@ -188,6 +197,7 @@ class _AddIconPageState extends State<AddIconPage> {
                               setState(() {
                                 if (val == false && selectIconId.isNotEmpty) {
                                   selectIconId = [];
+                                  selectIconList = [];
                                 }
                                 switchBtn = val;
                                 iconName = null;
@@ -389,27 +399,32 @@ class _AddIconPageState extends State<AddIconPage> {
     // icon 未点击过
     if (!check) {
       var list = selectIconId;
+      var iconList = selectIconList;
       if (switchBtn) {
         list.add(icon.id!);
+        iconList.add(icon);
       } else {
         list = [icon.id!];
+        iconList = [icon];
         setState(() {
           iconName = icon.name!;
         });
       }
       setState(() {
         selectIconId = list;
+        selectIconList = iconList;
       });
     } else {
       var index = selectIconId.indexOf(icon.id!);
       var list = selectIconId;
+      var iconList = selectIconList;
       if (switchBtn) {
         list.removeAt(index);
-      } else {
-        list = [];
+        iconList.removeAt(index);
       }
       setState(() {
         selectIconId = list;
+        selectIconList = iconList;
       });
     }
   }
@@ -418,5 +433,51 @@ class _AddIconPageState extends State<AddIconPage> {
   Color _iconBgColor(int id) {
     var check = selectIconId.contains(id);
     return check ? primary : Colors.black12;
+  }
+
+  // 保存
+  void _save() async {
+    if (selectIconList.isNotEmpty) {
+      OrderIconDbProvider orderIconDbProvider = OrderIconDbProvider();
+      await orderIconDbProvider.open();
+      var res = await orderIconDbProvider
+          .tableIsEmpty(orderIconDbProvider.tableName());
+      if (res) {
+        await orderIconDbProvider.createTable();
+      }
+      for (var i = 0; i < selectIconList.length; i++) {
+        var iconJson = selectIconList[i].toJson();
+        var time = DateTime.now().microsecondsSinceEpoch;
+        iconJson['id'] = null;
+        iconJson['parent_id'] = widget.icon != null ? widget.icon!.id : null;
+        iconJson['create_time'] = time;
+        iconJson['update_time'] = time;
+        if (inputText != null) {
+          iconJson['nickname'] = inputText;
+        }
+        OrderIconMo orderIcon = OrderIconMo.fromJson(iconJson);
+        await orderIconDbProvider.insert(orderIcon.toJson());
+        Navigator.of(context).pop();
+      }
+      await orderIconDbProvider.close();
+    }
+  }
+
+  // 父级icon
+  Widget parentIcon() {
+    if (widget.icon == null) return const SizedBox();
+    return Container(
+      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12, top: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            '一级分类',
+            style: TextStyle(fontSize: 16),
+          ),
+          Text(widget.icon!.nickName!),
+        ],
+      ),
+    );
   }
 }

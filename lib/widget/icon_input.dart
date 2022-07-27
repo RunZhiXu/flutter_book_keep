@@ -11,17 +11,19 @@ class IconInput extends StatefulWidget {
   final bool obscureText; // 密码输入
   final TextInputType? keyboardType; // 输入框接受的类型输入
   final int? maxLength;
+  final String? text; // 文本
 
-  const IconInput(
-      {Key? key,
-      required this.hint,
-      this.onChanged,
-      this.focusChanged,
-      required this.lineStretch,
-      required this.obscureText,
-      this.keyboardType,
-      this.maxLength})
-      : super(key: key);
+  const IconInput({
+    Key? key,
+    required this.hint,
+    this.onChanged,
+    this.focusChanged,
+    required this.lineStretch,
+    required this.obscureText,
+    this.keyboardType,
+    this.maxLength,
+    this.text,
+  }) : super(key: key);
 
   @override
   State<IconInput> createState() => _IconInputState();
@@ -29,10 +31,14 @@ class IconInput extends StatefulWidget {
 
 class _IconInputState extends State<IconInput> {
   final _focusNode = FocusNode();
+  final _textController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    if (widget.text != null) {
+      _textController.text = widget.text!;
+    }
     // 是否获取到光标
     _focusNode.addListener(() {
       if (kDebugMode) {
@@ -60,6 +66,7 @@ class _IconInputState extends State<IconInput> {
 
   _input() {
     return TextField(
+      controller: _textController,
       textAlign: TextAlign.right,
       focusNode: _focusNode,
       onChanged: widget.onChanged,

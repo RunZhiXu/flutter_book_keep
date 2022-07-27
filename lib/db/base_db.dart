@@ -65,4 +65,12 @@ abstract class BaseDatabase {
   }
 
   Future close() async => database!.close();
+
+  // 查看表是否存在
+  Future<bool> tableIsEmpty(String tableName) async {
+    var res = await database!.rawQuery(
+        "select * from  sqlite_master where type = 'table' and name = '$tableName'");
+    var check = res.isEmpty;
+    return check;
+  }
 }

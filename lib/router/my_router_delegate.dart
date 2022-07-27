@@ -1,3 +1,4 @@
+import 'package:book_keeping_app/model/icon_mo.dart';
 import 'package:book_keeping_app/page/add_icon_page.dart';
 import 'package:book_keeping_app/router/bottom_navigator.dart';
 import 'package:book_keeping_app/router/routes.dart';
@@ -10,8 +11,9 @@ class MyRouterDelegate extends RouterDelegate<MyRouterPath>
   RouteStatus _routeStatus = RouteStatus.home;
   // 页面集合
   List<MaterialPage> pages = [];
-  // 添加分类页面的标题
-  String? title;
+  // 添加分类页面的icon
+  IconMo? icon;
+  int? iconType; // icon类型 0 支出 1收入
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +31,8 @@ class MyRouterDelegate extends RouterDelegate<MyRouterPath>
       page = pageWrap(const BottomNavigator());
     } else if (routeStatus == RouteStatus.addIcon) {
       page = pageWrap(AddIconPage(
-        title: title,
+        icon: icon,
+        type: iconType!,
       ));
     }
     // 重新创建数组，否则pages因引用没有改变路由不会生效
@@ -82,7 +85,8 @@ class MyRouterDelegate extends RouterDelegate<MyRouterPath>
       _routeStatus = routeStatus;
       // 传递参数
       if (routeStatus == RouteStatus.addIcon) {
-        title = args!['title'];
+        icon = args!['icon'];
+        iconType = args['type'];
       }
       notifyListeners();
     }));
