@@ -450,8 +450,10 @@ class _AddIconPageState extends State<AddIconPage> {
         var time = DateTime.now().microsecondsSinceEpoch;
         iconJson['id'] = null;
         iconJson['parent_id'] = widget.icon != null ? widget.icon!.id : null;
+        iconJson['icon_id'] = selectIconList[i].id;
         iconJson['create_time'] = time;
         iconJson['update_time'] = time;
+        iconJson['type'] = widget.type;
         if (inputText != null) {
           iconJson['nickname'] = inputText;
         }

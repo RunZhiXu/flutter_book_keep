@@ -1,4 +1,3 @@
-import 'package:book_keeping_app/model/icon_mo.dart';
 import 'package:book_keeping_app/page/asset_page.dart';
 import 'package:book_keeping_app/page/home_page.dart';
 import 'package:book_keeping_app/router/routes.dart';
@@ -140,18 +139,18 @@ class _BottomNavigatorState extends State<BottomNavigator> {
     if (kDebugMode) {
       print('click add');
     }
-    // TODO test
-    var icon = IconMo(
-      id: 1,
-      name: "测试",
-      nickName: "测试",
-      iconCategoryId: 1,
-      createTime: 1658219751219218,
-      updateTime: 1658219751219218,
-    );
-    HiNavigator.getInstance().onJumpTo(
-      RouteStatus.addIcon,
-      args: {"icon": icon, "type": 0},
-    );
+    // var icon = IconMo(
+    //   id: 1,
+    //   name: "测试",
+    //   nickName: "测试",
+    //   iconCategoryId: 1,
+    //   createTime: 1658219751219218,
+    //   updateTime: 1658219751219218,
+    // );
+    // HiNavigator.getInstance().onJumpTo(
+    //   RouteStatus.addIcon,
+    //   args: {"icon": icon, "type": 0},
+    // );
+    HiNavigator.getInstance().onJumpTo(RouteStatus.addBill);
   }
 }

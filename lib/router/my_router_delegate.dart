@@ -1,4 +1,5 @@
 import 'package:book_keeping_app/model/icon_mo.dart';
+import 'package:book_keeping_app/page/add_bill_page.dart';
 import 'package:book_keeping_app/page/add_icon_page.dart';
 import 'package:book_keeping_app/router/bottom_navigator.dart';
 import 'package:book_keeping_app/router/routes.dart';
@@ -34,6 +35,8 @@ class MyRouterDelegate extends RouterDelegate<MyRouterPath>
         icon: icon,
         type: iconType!,
       ));
+    } else if (routeStatus == RouteStatus.addBill) {
+      page = pageWrap(const AddBillPage());
     }
     // 重新创建数组，否则pages因引用没有改变路由不会生效
     tempPages = [...tempPages, page];

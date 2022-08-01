@@ -20,4 +20,15 @@ class OrderIconDbProvider extends BaseDatabase {
   String tableName() {
     return 'order_icon';
   }
+
+  /// 通过type获取icon 列表
+  Future<List<Map<String, Object?>>?> getListByType(
+      int type, List<String>? columns) async {
+    List<Map<String, Object?>> maps = await database!.query(tableName(),
+        columns: columns, where: 'type = ?', whereArgs: [type]);
+    if (maps.isNotEmpty) {
+      return maps;
+    }
+    return null;
+  }
 }
