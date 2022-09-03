@@ -1,3 +1,5 @@
+import 'package:book_keeping_app/db/hi_cache.dart';
+import 'package:book_keeping_app/db/provider/order_db_provider.dart';
 import 'package:book_keeping_app/util/view_util.dart';
 import 'package:book_keeping_app/widget/round_button.dart';
 import 'package:flutter/foundation.dart';
@@ -18,6 +20,21 @@ class _HomePageState extends State<HomePage>
   double income = 2000.01; // 收入
   double expenditure = 0.01; // 支出
   void Function() get _popDrawer => () => Navigator.pop(context);
+  int? year; // 年份
+  int? month; // 月份
+
+  @override
+  void initState() {
+    super.initState();
+    var cacheYear = HiCache.getInstance().get('year');
+    var cacheMonth = HiCache.getInstance().get('month');
+    var date = DateTime.now();
+    setState(() {
+      year = cacheYear ?? date.year;
+      month = cacheMonth ?? date.month;
+    });
+    getMonthOrder(month!);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +80,6 @@ class _HomePageState extends State<HomePage>
       ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 
   Widget _title() {
     return GestureDetector(
@@ -343,4 +357,24 @@ class _HomePageState extends State<HomePage>
       ],
     );
   }
+
+  // 获取某个月份的订单数据
+  void getMonthOrder(int month) async {
+    OrderDbProvider orderDbProvider = OrderDbProvider();
+    await orderDbProvider.open();
+    DateTime lastDateTime = DateTime(year!, month + 1);
+    var lastDay = lastDateTime
+        .subtract(const Duration(milliseconds: 1))
+        .millisecondsSinceEpoch; // 本月最后一日的毫秒
+    var firstDay = DateTime(year!, month).millisecondsSinceEpoch;
+    print('lastDay $lastDay');
+    print('firstDay $firstDay');
+    var res = await orderDbProvider.getOrderListByTime(
+        startTime: firstDay, endTime: lastDay);
+    print("res === $res");
+  }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }

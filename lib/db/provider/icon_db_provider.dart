@@ -29,4 +29,13 @@ class IconDbProvider extends BaseDatabase {
     }
     return null;
   }
+
+  Future createList() async {
+    for (var i = 0; i < iconList.length; i++) {
+      await insert(iconList[i]);
+    }
+  }
+
+  // TODO 最后完善完整的icon
+  List<Map<String, dynamic>> iconList = [];
 }

@@ -29,7 +29,8 @@ class MyRouterDelegate extends RouterDelegate<MyRouterPath>
       // 跳转到首页时将其他页面出栈，因为首页不可回退
       pages.clear();
       // 重新创建首页
-      page = pageWrap(const BottomNavigator());
+      var key = ValueKey(DateTime.now().millisecond);
+      page = pageWrap(const BottomNavigator(), key: key);
     } else if (routeStatus == RouteStatus.addIcon) {
       page = pageWrap(AddIconPage(
         icon: icon,

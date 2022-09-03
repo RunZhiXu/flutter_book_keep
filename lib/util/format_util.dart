@@ -9,6 +9,17 @@ String countFormat(int count, {fixed = 2}) {
   return views;
 }
 
+/// 字符串转浮点数
+num stringToNum(String text, {fixed = 2}) {
+  return num.parse(double.parse(text).toStringAsFixed(fixed));
+}
+
+/// 字符串是加法或者减法的表达式
+bool stringIsAddOrReduce(String text) {
+  RegExp regExp = RegExp("\\+|\\-");
+  return regExp.hasMatch(text);
+}
+
 //时间转换成分钟秒
 String durationTransform(int seconds) {
   int m = (seconds ~/ 60);

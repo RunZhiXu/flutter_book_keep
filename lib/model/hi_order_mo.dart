@@ -1,11 +1,12 @@
 /// 记账数据
-/// [type] 类型 income-收入 expenditure-支出 reimbursement-报销 refund-退款
-/// [categoryId] 分类
+/// [type] 类型 1-收入 0-支出 2-报销 3-退款
+/// [categoryId] 分类 就是 [OrderIconMo]的id
 /// [parentId] 通常是退款类型使用，用来定位原账单
 class HiOrderMo {
   int? id;
-  String? type;
+  int? type;
   double? count;
+  String? description;
   int? categoryId;
   int? createTime;
   int? updateTime;
@@ -16,6 +17,7 @@ class HiOrderMo {
       this.type,
       this.count,
       this.categoryId,
+      this.description,
       this.createTime,
       this.updateTime,
       this.parentId});
@@ -24,6 +26,7 @@ class HiOrderMo {
     id = json['id'];
     type = json['type'];
     count = json['count'];
+    description = json['description'];
     categoryId = json['category_id'];
     createTime = json['create_time'];
     updateTime = json['update_time'];
@@ -35,6 +38,7 @@ class HiOrderMo {
     data['id'] = id;
     data['type'] = type;
     data['count'] = count;
+    data['description'] = description;
     data['category_id'] = categoryId;
     data['create_time'] = createTime;
     data['update_time'] = updateTime;

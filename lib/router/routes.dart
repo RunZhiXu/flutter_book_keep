@@ -2,6 +2,7 @@ import 'package:book_keeping_app/page/add_bill_page.dart';
 import 'package:book_keeping_app/page/add_icon_page.dart';
 import 'package:book_keeping_app/page/asset_page.dart';
 import 'package:book_keeping_app/page/home_page.dart';
+import 'package:book_keeping_app/router/bottom_navigator.dart';
 import 'package:flutter/material.dart';
 
 /// 自定义路由状态
@@ -17,8 +18,8 @@ typedef RouteChangeListener = Function(
     RouteStatusInfo current, RouteStatusInfo pre);
 
 /// 创建页面
-pageWrap(Widget child) {
-  return MaterialPage(child: child, key: ValueKey(child.hashCode));
+pageWrap(Widget child, {LocalKey? key}) {
+  return MaterialPage(child: child, key: key ?? ValueKey(child.hashCode));
 }
 
 /// 路由信息
@@ -106,15 +107,16 @@ class HiNavigator extends _RouteJumpListener {
 
   // 通知页面更新
   void _notify(RouteStatusInfo current) {
-    if (current.page is BottomNavigationBar && _bottomTab != null) {
+    // 如果是首页且是 切换tab的操作
+    if (current.page is BottomNavigator && _bottomTab != null) {
       // 如果打开的首页，则明确到首页的具体tab
       current = _bottomTab!;
     }
     print("hi_navigator:current :${current.page}");
     print("hi_navigator:pre :${_current?.page}");
-    _listeners.forEach((listener) {
+    for (var listener in _listeners) {
       listener(current, _current!);
-    });
+    }
     _current = current;
   }
 

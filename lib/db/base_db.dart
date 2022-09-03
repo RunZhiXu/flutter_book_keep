@@ -44,11 +44,10 @@ abstract class BaseDatabase {
     return null;
   }
 
-  Future<List<Map<String, Object?>>?> getList({List<String>? columns}) async {
-    List<Map<String, Object?>> maps = await database!.query(
-      tableName(),
-      columns: columns,
-    );
+  Future<List<Map<String, Object?>>?> getList(
+      {List<String>? columns, String? where, dynamic whereArgs}) async {
+    List<Map<String, Object?>> maps = await database!.query(tableName(),
+        columns: columns, where: where, whereArgs: whereArgs);
     if (maps.isNotEmpty) {
       return maps;
     }

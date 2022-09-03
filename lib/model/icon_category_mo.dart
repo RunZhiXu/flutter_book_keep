@@ -9,8 +9,6 @@ class IconCategoryMo {
   IconCategoryMo.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     name = json['name'];
-    createTime = json['create_time'];
-    updateTime = json['update_time'];
   }
 
   Map<String, dynamic> toJson() {
