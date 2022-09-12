@@ -1,11 +1,11 @@
 /// 记账数据
-/// [type] 类型 1-收入 0-支出 2-报销 3-退款
+/// [type] 类型  0-支出 1-收入 2-报销 3-退款
 /// [categoryId] 分类 就是 [OrderIconMo]的id
 /// [parentId] 通常是退款类型使用，用来定位原账单
 class HiOrderMo {
   int? id;
   int? type;
-  double? count;
+  String? count;
   String? description;
   int? categoryId;
   int? createTime;

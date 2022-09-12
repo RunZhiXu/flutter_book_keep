@@ -3,6 +3,7 @@ import 'package:book_keeping_app/page/add_icon_page.dart';
 import 'package:book_keeping_app/page/asset_page.dart';
 import 'package:book_keeping_app/page/home_page.dart';
 import 'package:book_keeping_app/router/bottom_navigator.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// 自定义路由状态
@@ -112,8 +113,11 @@ class HiNavigator extends _RouteJumpListener {
       // 如果打开的首页，则明确到首页的具体tab
       current = _bottomTab!;
     }
-    print("hi_navigator:current :${current.page}");
-    print("hi_navigator:pre :${_current?.page}");
+    if (kDebugMode) {
+      print("hi_navigator:current :${current.page}");
+      print("hi_navigator:pre :${_current?.page}");
+    }
+
     for (var listener in _listeners) {
       listener(current, _current!);
     }

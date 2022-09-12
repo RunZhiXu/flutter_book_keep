@@ -1,5 +1,4 @@
 // 基础datebase
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -12,9 +11,9 @@ abstract class BaseDatabase {
 
   Future<Database> open() async {
     var databasesPath = await getDatabasesPath();
-    if (kDebugMode) {
-      print('databasesPath == $databasesPath');
-    }
+    // if (kDebugMode) {
+    //   print('databasesPath == $databasesPath');
+    // }
     String path = join(databasesPath, dbName);
     database = await openDatabase(
       path,
@@ -36,6 +35,9 @@ abstract class BaseDatabase {
   }
 
   Future<Map<String, Object?>?> getOne(int id, List<String>? columns) async {
+    if (database == null) {
+      await open();
+    }
     List<Map<String, Object?>> maps = await database!
         .query(tableName(), columns: columns, where: 'id = ?', whereArgs: [id]);
     if (maps.isNotEmpty) {
@@ -63,7 +65,10 @@ abstract class BaseDatabase {
     return await database!.execute('DROP table ${tableName()}');
   }
 
-  Future close() async => database!.close();
+  Future close() async {
+    await database!.close();
+    database = null;
+  }
 
   // 查看表是否存在
   Future<bool> tableIsEmpty(String tableName) async {

@@ -1,10 +1,15 @@
 import 'package:book_keeping_app/db/hi_cache.dart';
 import 'package:book_keeping_app/db/provider/order_db_provider.dart';
 import 'package:book_keeping_app/util/view_util.dart';
+import 'package:book_keeping_app/widget/date_picker.dart';
 import 'package:book_keeping_app/widget/round_button.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:graphic/graphic.dart';
+
+import '../model/hi_order_mo.dart';
+import '../model/month_order_mo.dart';
+import '../util/format_util.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -15,23 +20,35 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin {
-  final imgUrl = 'https://api.lamwityee.com/static/images/avatar.jpeg';
-  String selectDate = '2020-07'; // 选择的年月份
-  double income = 2000.01; // 收入
-  double expenditure = 0.01; // 支出
+  final imgUrl = 'assets/images/avatar.png';
+  String selectDate = ''; // 选择的年月份
+  num monthIncome = 0; // 月收入
+  num monthExpenditure = 0; // 月支出
   void Function() get _popDrawer => () => Navigator.pop(context);
   int? year; // 年份
   int? month; // 月份
+  List<MonthOrderMo> monthOrderList = [];
+  List<Map<String, dynamic>> weekChartList = [
+    {"name": "周一", "count": 0.0},
+    {"name": "周2", "count": 0.0},
+    {"name": "周3", "count": 0.0},
+    {"name": "周4", "count": 0.0},
+    {"name": "周5", "count": 0.0},
+    {"name": "周6", "count": 0.0},
+    {"name": "周1", "count": 0.0},
+  ];
 
   @override
   void initState() {
     super.initState();
-    var cacheYear = HiCache.getInstance().get('year');
-    var cacheMonth = HiCache.getInstance().get('month');
     var date = DateTime.now();
+    var cacheYear = HiCache.getInstance().get('year') ?? date.year;
+    var cacheMonth = HiCache.getInstance().get('month') ?? date.month;
     setState(() {
-      year = cacheYear ?? date.year;
-      month = cacheMonth ?? date.month;
+      year = cacheYear;
+      month = cacheMonth;
+      selectDate =
+          "$cacheYear-${cacheMonth >= 10 ? cacheMonth : "0$cacheMonth"}";
     });
     getMonthOrder(month!);
   }
@@ -45,30 +62,6 @@ class _HomePageState extends State<HomePage>
         centerTitle: true,
         title: _title(),
         elevation: 0.5,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: GestureDetector(
-              onTap: () {
-                if (kDebugMode) {
-                  print('点击日历视图');
-                }
-              },
-              child: const Icon(Icons.calendar_month_outlined),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: GestureDetector(
-              onTap: () {
-                if (kDebugMode) {
-                  print('点击图表');
-                }
-              },
-              child: const Icon(Icons.assessment_outlined),
-            ),
-          ),
-        ],
       ),
       drawer: _drawer(),
       body: ListView(
@@ -84,13 +77,18 @@ class _HomePageState extends State<HomePage>
   Widget _title() {
     return GestureDetector(
       onTap: () {
-        if (kDebugMode) {
-          print('点击日期');
-        }
+        _handleDatePicker();
       },
-      child: Text(
-        selectDate,
-        style: TextStyle(color: Colors.grey[600]),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            selectDate,
+            style: const TextStyle(fontSize: 16),
+          ),
+          const Icon(Icons.keyboard_arrow_down_outlined)
+        ],
       ),
     );
   }
@@ -129,7 +127,8 @@ class _HomePageState extends State<HomePage>
                       style: TextStyle(color: Colors.white, fontSize: 12),
                     ),
                     Text(
-                      (income - expenditure).toStringAsFixed(2),
+                      ((monthIncome * 100 - monthExpenditure * 100) / 100)
+                          .toStringAsFixed(2),
                       style: const TextStyle(color: Colors.white, fontSize: 20),
                     )
                   ],
@@ -153,12 +152,12 @@ class _HomePageState extends State<HomePage>
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
                   child: Text(
-                    '月收入: ${income.toStringAsFixed(2)}',
+                    '月收入: ${monthIncome.toStringAsFixed(2)}',
                     style: const TextStyle(color: Colors.white, fontSize: 15),
                   ),
                 ),
                 Text(
-                  '月支出: ${expenditure.toStringAsFixed(2)}',
+                  '月支出: ${monthExpenditure.toStringAsFixed(2)}',
                   style: const TextStyle(color: Colors.white, fontSize: 15),
                 ),
               ],
@@ -184,7 +183,7 @@ class _HomePageState extends State<HomePage>
               child: CircleAvatar(
                 radius: 40,
                 backgroundColor: Colors.transparent,
-                backgroundImage: NetworkImage(
+                backgroundImage: AssetImage(
                   imgUrl,
                 ),
               ),
@@ -215,16 +214,6 @@ class _HomePageState extends State<HomePage>
 
   // 图表
   _dateChart() {
-    const data = [
-      {'category': '周一', 'sales': 5},
-      {'category': '周二', 'sales': 20},
-      {'category': '周三', 'sales': 36},
-      {'category': '周四', 'sales': 10},
-      {'category': '周五', 'sales': 10},
-      {'category': '周六', 'sales': 20},
-      {'category': '周日', 'sales': 300},
-    ];
-
     return Padding(
       padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
       child: Container(
@@ -247,7 +236,7 @@ class _HomePageState extends State<HomePage>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  '最近7日汇总',
+                  '本周支出',
                   style: TextStyle(fontSize: 14),
                 ),
                 GestureDetector(
@@ -264,38 +253,39 @@ class _HomePageState extends State<HomePage>
               ],
             ),
             Expanded(
-                child: Chart(
-              data: data,
-              variables: {
-                'category': Variable(
-                  accessor: (Map map) => map['category'] as String,
-                ),
-                'sales': Variable(
-                  accessor: (Map map) => map['sales'] as num,
-                ),
-              },
-              elements: [IntervalElement()],
-              axes: [
-                AxisGuide(
-                  label: LabelStyle(
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xff808080),
-                    ),
-                    offset: const Offset(0, 7.5),
+              child: Chart(
+                data: weekChartList,
+                variables: {
+                  'name': Variable(
+                    accessor: (Map map) => map['name'] as String,
                   ),
-                ),
-                AxisGuide(
-                  label: LabelStyle(
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xff808080),
-                    ),
-                    offset: const Offset(0, 7.5),
+                  'count': Variable(
+                    accessor: (Map map) => map['count'] as num,
                   ),
-                )
-              ],
-            )),
+                },
+                elements: [IntervalElement()],
+                axes: [
+                  AxisGuide(
+                    label: LabelStyle(
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Color(0xff808080),
+                      ),
+                      offset: const Offset(0, 7.5),
+                    ),
+                  ),
+                  AxisGuide(
+                    label: LabelStyle(
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Color(0xff808080),
+                      ),
+                      offset: const Offset(0, 7.5),
+                    ),
+                  )
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -303,27 +293,6 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _list() {
-    const order = <String, dynamic>{
-      'time': 12000000,
-      'count': 100.00,
-      'list': [
-        {
-          'id': 0,
-          'type': 'expenditure', // expenditure 支出 income 收入
-          'count': 33.33,
-          'category_id': 1,
-          'refund_id': 1,
-          'refund': {
-            'id': 0,
-            'fund': 22.22,
-            'create_time': 100000,
-            'account_id': 1,
-          },
-          'create_time': 10000000,
-          'update_time': 10000000,
-        },
-      ]
-    };
     return Column(
       children: [
         Padding(
@@ -333,25 +302,9 @@ class _HomePageState extends State<HomePage>
             right: 12,
           ),
           child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                  ),
-                  color: Colors.white,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('07.07'),
-                    Text('支出:55.00'),
-                  ],
-                ),
-              ),
-            ],
+            children: monthOrderList.isNotEmpty
+                ? _orderListItemWidget()
+                : [const SizedBox()],
           ),
         ),
       ],
@@ -367,14 +320,340 @@ class _HomePageState extends State<HomePage>
         .subtract(const Duration(milliseconds: 1))
         .millisecondsSinceEpoch; // 本月最后一日的毫秒
     var firstDay = DateTime(year!, month).millisecondsSinceEpoch;
-    print('lastDay $lastDay');
-    print('firstDay $firstDay');
     var res = await orderDbProvider.getOrderListByTime(
         startTime: firstDay, endTime: lastDay);
-    print("res === $res");
+    if (kDebugMode) {
+      print("res === $res");
+    }
+    var weekRes = await orderDbProvider.getWeekExpensesOrderList();
+    setState(() {
+      weekChartList = weekRes;
+    });
+    if (res != null) {
+      List<HiOrderMo> orderList = [];
+      setState(() {
+        monthOrderList = [];
+      });
+      for (var e in res) {
+        orderList.add(HiOrderMo.fromJson(e));
+      }
+      var orderListGroupDay =
+          await orderDbProvider.getOrderListGroupDay(orderList);
+      await orderDbProvider.close();
+      if (orderListGroupDay.isNotEmpty) {
+        num income = 0; // 月收入
+        num expenses = 0; // 月支出
+        for (var orderData in orderListGroupDay) {
+          var list = orderData.orderList!;
+          for (var order in list) {
+            if (order.type == 0) {
+              // 支出
+              expenses =
+                  (stringToNum(order.count!) * 100 + expenses * 100) / 100;
+            }
+            if (order.type == 1) {
+              // 收入
+              income = (stringToNum(order.count!) * 100 + income * 100) / 100;
+            }
+          }
+        }
+
+        setState(() {
+          monthOrderList = orderListGroupDay;
+          monthExpenditure = monthExpenditure + expenses;
+          monthIncome = monthIncome + income;
+        });
+      }
+    }
   }
 
   @override
   // TODO: implement wantKeepAlive
   bool get wantKeepAlive => true;
+
+  List<Widget> _orderListItemWidget() {
+    List<Widget> widgetList = []; // header
+    for (var monthOrder in monthOrderList) {
+      List<Widget> widgetChildList = []; // item list
+      num expenses = 0; // 支出
+      num income = 0; // 收入
+
+      widgetChildList.add(
+        const Divider(),
+      );
+
+      for (var i = 0; i < monthOrder.orderList!.length; i++) {
+        var order = monthOrder.orderList![i];
+        if (order.type == 0) {
+          // 支出
+          expenses = (income * 100 + stringToNum(order.count!) * 100) / 100;
+        }
+        if (order.type == 1) {
+          // 收入
+          income = (income * 100 + stringToNum(order.count!) * 100) / 100;
+        }
+        widgetChildList.add(
+          InkWell(
+            onTap: () {
+              _handleOrder(order);
+            },
+            child: Container(
+              padding:
+                  const EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 4,
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(4)),
+                            color: getOrderColor(order.type!)),
+                      ),
+                      Text("${order.category!.nickname}")
+                    ],
+                  ),
+                  Text(
+                    getOrderCountText(
+                        type: order.type!, text: "${order.count}"),
+                    style: TextStyle(color: getOrderColor(order.type!)),
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+        if (i != monthOrder.orderList!.length - 1) {
+          widgetChildList.add(
+            const Divider(),
+          );
+        }
+      }
+
+      widgetList.add(
+        Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(bottom: 12, top: 12),
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(12),
+              topRight: Radius.circular(12),
+              bottomLeft: Radius.circular(12),
+              bottomRight: Radius.circular(12),
+            ),
+            color: Colors.white,
+          ),
+          child: Column(
+            children: widgetChildList,
+          ),
+        ),
+      );
+
+      // header
+      widgetChildList.insert(
+        0,
+        Padding(
+          padding: const EdgeInsets.only(left: 12, right: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(monthOrder.day!),
+              Row(
+                children: [
+                  expenses != 0
+                      ? Text("支:${expenses.toStringAsFixed(2)}")
+                      : const SizedBox(),
+                  income != 0
+                      ? Text(" 收:${income.toStringAsFixed(2)}")
+                      : const SizedBox(),
+                ],
+              )
+            ],
+          ),
+        ),
+      );
+    }
+    return widgetList;
+  }
+
+  // 获取记账订单的颜色
+  getOrderColor(int type) {
+    switch (type) {
+      case 0:
+        return Colors.redAccent; // 0 支出
+      case 1:
+        return Colors.green; // 1收入
+    }
+  }
+
+  // 获取订单的金额
+  getOrderCountText({required int type, required String text}) {
+    switch (type) {
+      case 0:
+        return "-$text"; // 0 支出
+      case 1:
+        return "+$text"; // 1收入
+    }
+  }
+
+  void _handleOrder(OrderList order) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                  ),
+                ),
+                padding: const EdgeInsets.only(
+                    left: 12, right: 12, top: 12, bottom: 20),
+                child: Column(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "账单详情",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              bool? delete = await showDeleteConfirmDialog();
+                              if (delete == true) {
+                                // 选择了删除
+                                Navigator.of(context).pop();
+                              }
+                            },
+                            child: const Text(
+                              "删除",
+                              style: TextStyle(
+                                  color: Colors.redAccent, fontSize: 14),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.only(top: 12, bottom: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "金额",
+                          ),
+                          Text(
+                            "${getOrderCountText(type: order.type!, text: order.count!)}",
+                            style: TextStyle(
+                              color: getOrderColor(order.type!),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.only(top: 12, bottom: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "分类",
+                          ),
+                          Text(
+                            order.category!.nickname!,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.only(top: 12, bottom: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "创建时间",
+                          ),
+                          Text(
+                            getTimeFromMilliseconds(order.createTime!),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleDatePicker() {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return SingleChildScrollView(
+            child: DatePicker(
+              saveDateCallback: ({required int year, required int month}) {
+                HiCache.getInstance().setInt("year", year);
+                HiCache.getInstance().setInt("month", month);
+                var monthStr = month >= 10 ? "$month" : "0$month";
+                setState(() {
+                  selectDate = "$year-$monthStr";
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          );
+        },
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent);
+  }
+
+  Future<bool?> showDeleteConfirmDialog() {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("提示"),
+            content: const Text("您确定要删除当前文件吗?"),
+            actions: <Widget>[
+              TextButton(
+                child: const Text(
+                  "取消",
+                  style: TextStyle(color: Colors.black),
+                ),
+                onPressed: () => Navigator.of(context).pop(), // 关闭对话框
+              ),
+              TextButton(
+                child: const Text(
+                  "删除",
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+                onPressed: () {
+                  //关闭对话框并返回true
+                  Navigator.of(context).pop(true);
+                },
+              ),
+            ],
+          );
+        });
+  }
 }

@@ -32,7 +32,6 @@ class _AppKeyboardState extends State<AppKeyboard> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final bottom = MediaQuery.of(context).padding.bottom; // 底部安全距离
-
     return Container(
       padding: EdgeInsets.only(bottom: bottom),
       decoration: BoxDecoration(color: Colors.grey[100]),

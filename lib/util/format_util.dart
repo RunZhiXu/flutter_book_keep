@@ -51,3 +51,12 @@ List<List<T>> splitList<T>(List<T> list, int len) {
   }
   return result;
 }
+
+String getTimeFromMilliseconds(int millisecondsSinceEpoch) {
+  var time = DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
+  var month = time.month >= 10 ? "${time.month}" : "0${time.month}";
+  var day = time.day >= 10 ? "${time.day}" : "0${time.day}";
+  var hour = time.hour >= 10 ? "${time.hour}" : "0${time.hour}";
+  var minute = time.minute >= 10 ? "${time.minute}" : "0${time.minute}";
+  return "${time.year}-$month-$day $hour:$minute";
+}

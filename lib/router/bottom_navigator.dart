@@ -30,12 +30,14 @@ class _BottomNavigatorState extends State<BottomNavigator> {
 
   @override
   Widget build(BuildContext context) {
-    var string = 'add';
     _pages = [
       const HomePage(),
       const AssetPage(),
     ];
     if (!_hasBuild) {
+      if (kDebugMode) {
+        print("hasBuild");
+      }
       // 页面第一次打开时，打开的时哪个tab
       HiNavigator.getInstance()
           .onBottomTabChange(initialPage, _pages[initialPage]);
@@ -70,7 +72,7 @@ class _BottomNavigatorState extends State<BottomNavigator> {
       selectedItemColor: _activeColor,
       items: [
         _bottomItem('首页', Icons.home, 0),
-        _bottomItem('资产', Icons.assessment, 1),
+        _bottomItem('预算', Icons.assessment, 1),
       ],
       type: BottomNavigationBarType.fixed,
     );

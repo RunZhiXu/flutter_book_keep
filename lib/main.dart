@@ -86,9 +86,6 @@ class _MyHomePageState extends State<MyHomePage> {
     await iconCategoryDbProvider.open();
     var iconCategoryDbProviderRes = await iconCategoryDbProvider
         .tableIsEmpty(iconCategoryDbProvider.tableName());
-    if (kDebugMode) {
-      print('iconCategoryDbProviderRes :$iconCategoryDbProviderRes');
-    }
     if (iconCategoryDbProviderRes) {
       await iconCategoryDbProvider.createTable(); // 创建表
       await iconCategoryDbProvider.createList(); // 倒入数据
@@ -120,7 +117,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     var iconList = await iconDbProvider
         .getList(where: 'icon_category_id = ?', whereArgs: [1]);
-    print("iconList: $iconList");
     await iconDbProvider.close();
     // order icon
     OrderIconDbProvider orderIconDbProvider = OrderIconDbProvider();
